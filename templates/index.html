@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
+    <script src="static/js/rSlider.min"></script>
+    <script src="static/src/js/restClient.js"></script>
+    <script src="static/js/rSlider.js"></script>
+    <title>Patient Inputs - SIMV</title>
+    <style>
+        * {
+            box-sizing: content-box;
+            margin: auto;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+           
+            padding: 0 0 0;
+            color: #333;
+            font-size: 14px;
+            background: #424242;
+            position: relative;
+        }
+
+        p {
+            padding-bottom: 40px;
+        }
+
+        h1 {
+
+            font-size: 50px;
+            color: #00C0FF;
+            text-align: center;
+            padding-top: 20;
+
+
+        }
+
+        h3 {
+            padding-bottom: 5px;
+            font-size: 10px;
+            color: darkgrey;
+            text-align: center;
+            color: #00C0FF;
+
+        }
+
+        h2 {
+            padding-top: 5px;
+            padding-bottom: 120px;
+            text-align: center;
+            font-size: 15px;
+            font-weight: 100;
+            color: whitesmoke;
+        }
+
+        pre {
+            padding: 20px 20px 0 0;
+            background: #f9f9f9;
+            border: 1px solid #f2f2f2;
+            margin-bottom: 30px;
+            line-height: 2em;
+        }
+
+
+        .container {
+            width: 100%;
+            margin: 0;
+        }
+
+        .slider-container {
+            margin-top: 20px;
+            width: 90%;
+            max-width: 600px;
+            align-content: center;
+        }
+
+        .config {
+            border: 1px solid #f2f2f2;
+            margin-bottom: 30px;
+            line-height: 1.7em;
+        }
+
+        .config table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .config table td {
+            padding: 10px;
+            border-bottom: 1px solid #f2f2f2;
+        }
+
+        .config table tr:nth-child(even) td {
+            background-color: #f9f9f9;
+        }
+
+        .mb {
+            margin-bottom: 15px;
+        }
+
+        .label {
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .download {
+            margin-bottom: 20px;
+        }
+
+        .download a {
+            text-decoration: none;
+            color: #00969b;
+            font-size: 16px;
+        }
+
+    </style>
+    <link rel="stylesheet" href="static/src/css/rSlider.min.css">
+</head>
+
+<body>
+    <div class="top">
+
+        <h1>SIMV</h1>
+        <h3>Mode</h3>
+        <h2>Room 24 - Bed 1</h2>
+    </div>
+
+    <div class="container">
+
+        <div class="slider-container">
+
+
+            <input type="text" id="slider" class="slider" />
+            <H2>PEEP - PIP Range [cmH2O]</H2>
+        </div>
+        <div class="slider-container">
+
+            <input type="text" id="slider2" class="slider" />
+            <H2>SIMV Induced - Total Breaths [1/min]</H2>
+        </div>
+        <div class="slider-container">
+
+            <input type="text" id="slider3" class="slider" />
+            <H2>Tidal Volume [mm]</H2>
+        </div>
+        <div class="slider-container">
+
+            <input type="text" id="slider4" class="slider" />
+            <input type="text" id="slider5" class="slider" />
+            <H2>I:E Ratio</H2>
+        </div>
+
+
+
+    </div>
+
+
+    <script src="static/src/js/rSlider.js"></script>
+    <script src="static/src/js/restClient.js"></script>
+    <script>
+        (function() {
+            'use strict';
+
+            function getArrayValues(values) {
+                if (values.indexOf(',') > 0) {
+                    var stringValues = values.split(',');
+                    var intValues = [];
+
+                    for (var i = 0; i < stringValues.length; i++) {
+                        intValues.push(parseInt(stringValues[i]));
+                    }
+
+                    return intValues;
+                }
+
+                return [parseInt(values)];
+            }
+
+            function run(config) {
+                console.log('config', config);
+
+                const mode = config.modes[config.active];
+
+                var simv = new rSlider({
+                    target: '#slider2',
+                    values: {
+                        min: mode.simv.min,
+                        max: mode.simv.max
+                    },
+                    range: true,
+                    step: 1,
+                    set: mode.simv.value,
+                    tooltip: true,
+                    labels: false,
+                    onChange: function(vals) {
+                        console.log(getArrayValues(vals));
+
+                        var newConfig = Object.assign({}, config);
+                        newConfig.modes[newConfig.active].simv.value = getArrayValues(vals);
+
+                        RestClient.postConfig(newConfig, function (response) {
+                            console.log('new config saved', response);
+                        })
+                    }
+                });
+
+                var tidal_volume = new rSlider({
+                    target: '#slider3',
+                    values: {
+                        min: mode.tidal_volume.min,
+                        max: mode.tidal_volume.max
+                    },
+                    step: 10,
+                    range: false,
+                    set: mode.tidal_volume.value,
+                    scale: true,
+                    labels: false,
+                    onChange: function(vals) {
+                        console.log(getArrayValues(vals));
+
+                        var newConfig = Object.assign({}, config);
+                        newConfig.modes[newConfig.active].tidal_volume.value = getArrayValues(vals);
+
+                        RestClient.postConfig(newConfig, function (response) {
+                            console.log('new config saved', response);
+                        })
+                    }
+                });
+
+                var peep = new rSlider({
+                    target: '#slider',
+                    values: {
+                        min: mode.peep.min,
+                        max: mode.peep.max
+                    },
+                    step: 1,
+                    range: true,
+                    set: mode.peep.value,
+                    scale: false,
+                    labels: false,
+                    onChange: function(vals) {
+                        console.log(getArrayValues(vals));
+
+                        var newConfig = Object.assign({}, config);
+                        newConfig.modes[newConfig.active].peep.value = getArrayValues(vals);
+
+                        RestClient.postConfig(newConfig, function (response) {
+                            console.log('new config saved', response);
+                        })
+                    }
+                });
+
+                var i_ratio = new rSlider({
+                    target: '#slider4',
+                    values: {
+                        min: mode.i_ratio.min,
+                        max: mode.i_ratio.max
+                    },
+                    step: 1,
+                    range: false,
+                    set: mode.i_ratio.value,
+                    scale: true,
+                    labels: false,
+                    onChange: function(vals) {
+                        console.log(getArrayValues(vals));
+
+                        var newConfig = Object.assign({}, config);
+                        newConfig.modes[newConfig.active].i_ratio.value = getArrayValues(vals);
+
+                        RestClient.postConfig(newConfig, function (response) {
+                            console.log('new config saved', response);
+                        })
+                    }
+                });
+                var e_ratio = new rSlider({
+                    target: '#slider5',
+                    values: {
+                        min: mode.e_ratio.min,
+                        max: mode.e_ratio.max
+                    },
+                    step: 1,
+                    range: false,
+                    set: mode.e_ratio.value,
+                    scale: true,
+                    labels: true,
+                    onChange: function(vals) {
+                        console.log(getArrayValues(vals));
+
+                        var newConfig = Object.assign({}, config);
+                        newConfig.modes[newConfig.active].e_ratio.value = getArrayValues(vals);
+
+                        RestClient.postConfig(newConfig, function (response) {
+                            console.log('new config saved', response);
+                        })
+                    }
+                });
+            };
+
+            function init() {
+                RestClient.getConfig(run);
+            }
+
+
+            if (document.readyState != 'loading') {
+                RestClient.getConfig(init);
+            } else {
+                document.addEventListener('DOMContentLoaded', init);
+            }
+        })();
+
+    </script>
+</body>
+
+</html>
