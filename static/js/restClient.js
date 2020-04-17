@@ -1,4 +1,5 @@
 (function () {
+    // Please change host with appropriate IP
     var host = "http://192.168.1.31:5000";
     var configUrl = host + '/config';
 
